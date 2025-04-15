@@ -2,7 +2,6 @@ name: camerapack
 description: "A Flutter plugin for custom camera functionalities, including capturing images, flipping cameras, and accessing the gallery."
 version: 0.0.1
 homepage: https://github.com/Raghupra28/camerapack
-author: Raghavendra <Raghuc0092@gmail.com>
 environment:
   sdk: ^3.6.1
   flutter: '>=3.3.0'
