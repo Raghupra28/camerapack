@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+  <androidx.constraintlayout.widget.ConstraintLayout
+      android:layout_width="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+      android:layout_height="match_parent">
+
+    <!-- Title -->
+   <!-- <TextView
+        android:id="@+id/titleText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Camera"
+        android:textColor="#FFA500"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:paddingTop="20dp"/>-->
+
+    <!-- Camera Preview -->
+    <androidx.camera.view.PreviewView
+        android:id="@+id/cameraPreview"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/buttonLayout"/>
+
+    <!-- Bottom Layout -->
+    <LinearLayout
+        android:id="@+id/buttonLayout"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:background="#000000"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/cameraPreview"
+        android:gravity="center"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+      <!-- Gallery -->
+      <ImageButton
+          android:id="@+id/galleryButton"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:src="@drawable/ic_gallery"
+          android:contentDescription="Gallery"
+          android:tint="@android:color/white" />
+
+      <!-- Capture -->
+      <ImageButton
+          android:id="@+id/captureButton"
+          android:layout_width="80dp"
+          android:layout_height="80dp"
+          android:background="@drawable/circle_button"
+          android:contentDescription="Capture"/>
+
+      <!-- Flip Camera -->
+      <ImageButton
+          android:id="@+id/flipCameraButton"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:src="@drawable/ic_flip_camera"
+          android:contentDescription="Flip Camera"
+          android:tint="@android:color/white" />
+    </LinearLayout>
+  </androidx.constraintlayout.widget.ConstraintLayout>
