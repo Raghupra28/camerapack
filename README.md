@@ -5,7 +5,7 @@ camerapack is a Flutter plugin that opens a native camera screen (iOS and Androi
 Open native camera screen (Android/iOS)
 Flip between front and back cameras
 Handle device orientation changes
-Capture and return image file path
+Capture and return  image file path
 Pick image from gallery
 Communication between Flutter and native via platform channels
 
