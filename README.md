@@ -8,6 +8,6 @@ To use this plugin, add it to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  camerapack: ^0.1.0
+  camerapack: ^0.0.1
 
 

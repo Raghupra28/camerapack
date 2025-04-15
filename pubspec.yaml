@@ -1,8 +1,8 @@
 name: camerapack
-description: "A new Flutter plugin project."
+description: "A new Flutter plugin project for camera functionality."
 version: 0.0.1
-homepage:
-
+homepage: https://github.com/Raghupra28/camerapack
+author: Raghavendra <Raghuc0092@gmail.com>
 environment:
   sdk: ^3.6.1
   flutter: '>=3.3.0'
