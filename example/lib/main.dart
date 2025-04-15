@@ -33,7 +33,7 @@ class _MyAppState extends State<MyApp> {
     // We also handle the message potentially returning null.
     try {
       platformVersion =
-          await _camerapackPlugin.captureImage() ?? 'Unknown platform version';
+          await _camerapackPlugin.captureImage(isfront: true) ?? 'Unknown platform version';
     } on PlatformException {
     }
 
