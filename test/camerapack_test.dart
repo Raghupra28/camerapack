@@ -9,9 +9,15 @@ class MockCamerapackPlatform
     implements CamerapackPlatform {
 
   @override
-  Future<String?> captureImage({bool isfront = false}) {
+  Future<String?> captureImage({bool isfront = false,String? path}) {
     // TODO: implement captureImage
    return Future.value('28');
+  }
+
+  @override
+  Future<String?> pickFromGallery() {
+    // TODO: implement pickFromGallery
+    return Future.value('2828');
   }
 }
 
@@ -28,5 +34,6 @@ void main() {
     CamerapackPlatform.instance = fakePlatform;
 
     expect(await camerapackPlugin.captureImage(), '28');
+    expect(await camerapackPlugin.pickFromGallery(), '28');
   });
 }

@@ -29,6 +29,7 @@ class CameraActivity : AppCompatActivity() {
     private lateinit var captureButton:ImageButton
     private lateinit var galleryButton:ImageButton
     private lateinit var flipCameraButton:ImageButton
+    private var customPath: String? = null
     private lateinit var cameraPreview:PreviewView
 
     // Define MethodChannel
@@ -47,6 +48,7 @@ class CameraActivity : AppCompatActivity() {
         supportActionBar?.hide()
         val cameraPosition = intent.getStringExtra("camera_pos") ?: "back"
         val isFrontCamera = cameraPosition == "front"
+        customPath = intent.getStringExtra("custom_path")
         if(!isFrontCamera){
             cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
         }
@@ -91,7 +93,7 @@ class CameraActivity : AppCompatActivity() {
 
     private fun uriToFile(uri: android.net.Uri): File {
         val inputStream = contentResolver.openInputStream(uri)
-        val file = File.createTempFile("gallery_image_", ".jpg", cacheDir)
+        val file = File.createTempFile("camera_image_${System.currentTimeMillis()}", ".jpg", cacheDir)
         val outputStream = file.outputStream()
         inputStream?.copyTo(outputStream)
         inputStream?.close()
@@ -129,7 +131,7 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun takePhoto() {
-        viewModel.capturePhoto(imageCapture,this,cameraSelector)
+        viewModel.capturePhoto(imageCapture,this,cameraSelector, customPath)
     }
 
     companion object {

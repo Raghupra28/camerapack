@@ -1,10 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'dart:async';
-
 import 'package:flutter/services.dart';
 import 'package:camerapack/camerapack.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,49 +17,76 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String? data;
-  final _camerapackPlugin = Camerapack();
+  String? imagePath;
+  final _camerapack = Camerapack();
 
-  @override
-  void initState() {
-    super.initState();
+  Future<void> _captureImage() async {
+    await _requestPermissions();
+    try {
+      final path = await _camerapack.captureImage(isfront: true);
+      if (mounted && path != null) {
+        setState(() {
+          imagePath = path;
+        });
+      }
+    } on PlatformException catch (e) {
+      debugPrint('Failed to capture image: $e');
+    }
   }
 
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    String? platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    // We also handle the message potentially returning null.
-    try {
-      platformVersion =
-          await _camerapackPlugin.captureImage(isfront: true) ?? 'Unknown platform version';
-    } on PlatformException {
+  Future<void> _requestPermissions() async {
+    if (Platform.isAndroid) {
+      final storageStatus = await Permission.storage.request();
+      final photosStatus = await Permission.photos.request(); // iOS support
+      if (!storageStatus.isGranted && !photosStatus.isGranted) {
+        debugPrint('Permissions not granted');
+      }
     }
+  }
 
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
-
-    setState(() {
-      data = platformVersion!;
-    });
+  Future<void> _pickImageFromGallery() async {
+    await _requestPermissions();
+    try {
+      final path = await _camerapack.pickFromGallery();
+      if (path != null) {
+        setState(() {
+          imagePath = path;
+        });
+      }
+    } catch (e) {
+      print("Error picking image from gallery: $e");
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
         body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              TextButton(
-                  onPressed: initPlatformState,
-                  child: Text('Click Photo',textAlign: TextAlign.center,)),
-              if(data!=null) Image.file(File(data!),width: 200,height: 200,)
-            ],
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: _captureImage,
+                  child: Text("Capture Photo"),
+                ),
+                ElevatedButton(
+                  onPressed: _pickImageFromGallery,
+                  child: Text("Pick from Gallery"),
+                ),
+                const SizedBox(height: 20),
+                if (imagePath != null)
+                  Image.file(
+                    File(imagePath!),
+                    width: 200,
+                    height: 200,
+                    fit: BoxFit.cover,
+                  )
+              ],
+            ),
           ),
         ),
       ),

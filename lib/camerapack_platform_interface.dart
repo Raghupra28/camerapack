@@ -23,7 +23,9 @@ abstract class CamerapackPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<String?> captureImage({bool isfront =false}) {
+  Future<String?> captureImage({bool isfront =false,String? path}) {
     throw UnimplementedError('captureImage() has not been implemented.');
   }
+
+  Future<String?> pickFromGallery();
 }

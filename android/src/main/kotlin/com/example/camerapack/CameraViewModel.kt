@@ -26,12 +26,16 @@ class CameraViewModel : ViewModel() {
     private val _photoPath = MutableLiveData<String>()
     val photoPath: LiveData<String> get() = _photoPath
 
-    fun capturePhoto(imageCapture: ImageCapture?,context: Context,cameraSelector: CameraSelector) {
+    fun capturePhoto(imageCapture: ImageCapture?,context: Context,cameraSelector: CameraSelector,customPath: String? = null) {
 
-        val photoFile = File(
-            context.externalCacheDir,
-            "${System.currentTimeMillis()}.jpg"
-        )
+        val photoFile = if (customPath != null) {
+            File(customPath)
+        }else {
+            File(
+                context.externalCacheDir,
+                "${System.currentTimeMillis()}.jpg"
+            )
+        }
 
         val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
 
