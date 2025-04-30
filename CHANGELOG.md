@@ -1,3 +1,13 @@
+## [0.0.4] - 2025-04-30
+### Added
+- Flash toggle support for native camera screens on both Android and iOS.
+- Automatically updates the flash icon based on current flash state.
+
+### Changed
+- Internal refactoring for better flash control and UI feedback.
+
+---
+
 ## [0.0.3] - 2025-04-18
 ### Added
 - iOS support for picking images from the gallery.

@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -30,6 +31,7 @@ class CameraActivity : AppCompatActivity() {
     private lateinit var galleryButton:ImageButton
     private lateinit var flipCameraButton:ImageButton
     private var customPath: String? = null
+    private var isFlashOn = false
     private lateinit var cameraPreview:PreviewView
 
     // Define MethodChannel
@@ -78,8 +80,17 @@ class CameraActivity : AppCompatActivity() {
         galleryButton.setOnClickListener {
             galleryLauncher.launch("image/*")
         }
+
+        findViewById<ImageView>(R.id.imgFlash).setOnClickListener {
+            isFlashOn = !isFlashOn
+            updateFlashIcon()
+        }
     }
 
+    private fun updateFlashIcon() {
+        val flashIcon = if (isFlashOn) R.drawable.baseline_flash_on_24 else R.drawable.baseline_flash_off_24
+        findViewById<ImageView>(R.id.imgFlash).setImageResource(flashIcon)
+    }
 
     private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let {
@@ -119,7 +130,9 @@ class CameraActivity : AppCompatActivity() {
                 it.setSurfaceProvider(cameraPreview.surfaceProvider)
             }
 
-            imageCapture = ImageCapture.Builder().build()
+            imageCapture = ImageCapture.Builder().build().apply {
+                setFlashMode(if (isFlashOn) ImageCapture.FLASH_MODE_ON else ImageCapture.FLASH_MODE_OFF)
+            }
 
             try {
                 cameraProvider.unbindAll()

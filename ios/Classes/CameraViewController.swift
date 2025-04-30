@@ -1,5 +1,6 @@
 import UIKit
 import AVFoundation
+import Photos
 
 class CameraViewController: UIViewController {
   var captureSession: AVCaptureSession?
@@ -11,6 +12,8 @@ class CameraViewController: UIViewController {
 
   var onImageCaptured: ((String) -> Void)?
   var preloadedPath: String?
+  var currentDevice: AVCaptureDevice?
+  var flashEnabled = true // or false based on your default state
 
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -34,6 +37,12 @@ class CameraViewController: UIViewController {
     captureButton.addTarget(self, action: #selector(capturePhoto), for: .touchUpInside)
     view.addSubview(captureButton)
 
+    let flashButton = UIButton(frame: CGRect(x: view.frame.width - 60, y: 40, width: 40, height: 40))
+    flashButton.setImage(UIImage(systemName: "bolt.fill"), for: .normal) // Flash ON icon initially
+    flashButton.tintColor = .white // Optional: sets icon color
+    flashButton.addTarget(self, action: #selector(toggleFlash), for: .touchUpInside)
+    view.addSubview(flashButton)
+
     let galleryButton = UIButton(type: .system)
     galleryButton.setImage(UIImage(systemName: "photo.on.rectangle"), for: .normal)
     galleryButton.tintColor = .white
@@ -49,6 +58,21 @@ class CameraViewController: UIViewController {
     view.addSubview(flipButton)
   }
 
+  @objc func toggleFlash(_ sender: UIButton) {
+      guard let device = currentDevice, device.hasTorch else { return }
+          do {
+              try device.lockForConfiguration()
+              flashEnabled.toggle()
+              device.torchMode = flashEnabled ? .on : .off
+              device.unlockForConfiguration()
+
+              let imageName = flashEnabled ? "bolt.fill" : "bolt.slash.fill"
+              sender.setImage(UIImage(systemName: imageName), for: .normal)
+          } catch {
+              print("Flash error: \(error)")
+          }
+  }
+
   func setupCamera() {
     captureSession = AVCaptureSession()
     captureSession?.beginConfiguration()
@@ -62,6 +86,8 @@ class CameraViewController: UIViewController {
           captureSession?.canAddInput(input) == true else {
       return
     }
+
+    currentDevice = camera
 
     currentInput = input
     captureSession?.addInput(input)
@@ -125,7 +151,7 @@ extension CameraViewController: AVCapturePhotoCaptureDelegate {
   func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
     guard let imageData = photo.fileDataRepresentation() else { return }
 
-    let filename = "\(UUID().uuidString).jpg"
+    let filename = preloadedPath?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? preloadedPath! :"\(UUID().uuidString).jpg"
     let filePath = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
 
     do {

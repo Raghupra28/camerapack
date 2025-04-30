@@ -29,6 +29,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toTopOf="@id/buttonLayout"/>
 
+
+  <ImageView
+      android:layout_width="40dp"
+      android:layout_marginEnd="10dp"
+      android:id="@+id/imgFlash"
+      android:layout_marginTop="10dp"
+      app:layout_constraintBaseline_toTopOf="parent"
+      app:layout_constraintRight_toRightOf="parent"
+      android:src="@drawable/baseline_flash_on_24"
+      android:layout_height="40dp"/>
     <!-- Bottom Layout -->
     <LinearLayout
         android:id="@+id/buttonLayout"
