@@ -1,3 +1,9 @@
+## [0.0.6] - 2025-05-26
+### Changed
+- Updated Readme.
+
+---
+
 ## [0.0.5] - 2025-05-26
 ### Added
 - iOS: Support for image capture without compression.

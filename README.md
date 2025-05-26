@@ -35,7 +35,7 @@ Add the plugin to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  camerapack: ^0.0.5
+  camerapack: ^0.0.6
 ```
 
 Then run:
