@@ -10,6 +10,7 @@ class CameraViewController: UIViewController {
   var currentInput: AVCaptureDeviceInput?
   var cameraPosition: AVCaptureDevice.Position = .front
   var captureButton: UIButton!
+  var backButton: UIButton!
   var flashButton: UIButton!
   var flipButton: UIButton!
   var galleryButton: UIButton!
@@ -72,37 +73,104 @@ class CameraViewController: UIViewController {
 
 
   func setupUI() {
-    captureButton = UIButton(type: .system)
-    captureButton.setImage(UIImage(systemName: "circle.fill"), for: .normal)
-    captureButton.tintColor = .white
+
+// 1. Bottom Bar
+      let bottomBar = UIView()
+         bottomBar.backgroundColor = .black
+         bottomBar.translatesAutoresizingMaskIntoConstraints = false
+         view.addSubview(bottomBar)
+
+         NSLayoutConstraint.activate([
+             bottomBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+             bottomBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+             bottomBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+             bottomBar.heightAnchor.constraint(equalToConstant: 100)
+         ])
+
+
+        // 2. Capture Button
+            captureButton = UIButton(type: .system)
+            captureButton.setImage(UIImage(systemName: "circle.fill"), for: .normal)
+            captureButton.tintColor = .white
+            captureButton.backgroundColor = .white
+            captureButton.layer.cornerRadius = 35
             captureButton.tag = 5002
-    captureButton.frame = CGRect(x: (view.bounds.width - 80)/2, y: view.bounds.height - 120, width: 80, height: 80)
-    captureButton.addTarget(self, action: #selector(capturePhoto), for: .touchUpInside)
-    view.addSubview(captureButton)
+            captureButton.translatesAutoresizingMaskIntoConstraints = false
+            captureButton.addTarget(self, action: #selector(capturePhoto), for: .touchUpInside)
+            view.addSubview(captureButton)
 
-    flashButton = UIButton(frame: CGRect(x: view.frame.width - 60, y: 40, width: 40, height: 40))
-    flashButton.setImage(UIImage(systemName: "bolt.fill"), for: .normal) // Flash ON icon initially
-    flashButton.tintColor = .white // Optional: sets icon color
-                flashButton.tag = 5003
-                flashButton.isHidden = (cameraPosition == .front)
-    flashButton.addTarget(self, action: #selector(toggleFlash), for: .touchUpInside)
-    view.addSubview(flashButton)
+            NSLayoutConstraint.activate([
+                captureButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+                captureButton.bottomAnchor.constraint(equalTo: bottomBar.topAnchor, constant: -15),
+                captureButton.widthAnchor.constraint(equalToConstant: 70),
+                captureButton.heightAnchor.constraint(equalToConstant: 70)
+            ])
 
-    galleryButton = UIButton(type: .system)
-    galleryButton.setImage(UIImage(systemName: "photo.on.rectangle"), for: .normal)
-    galleryButton.tintColor = .white
-                    galleryButton.tag = 5004
-    galleryButton.frame = CGRect(x: (view.bounds.width - 80) / 2, y: view.bounds.height - 200, width: 80, height: 80)
-    galleryButton.addTarget(self, action: #selector(openGallery), for: .touchUpInside)
-    view.addSubview(galleryButton)
 
-    flipButton = UIButton(type: .system)
-    flipButton.setImage(UIImage(systemName: "arrow.triangle.2.circlepath.camera"), for: .normal)
-    flipButton.tintColor = .white
-                        flipButton.tag = 5005
-    flipButton.frame = CGRect(x: view.bounds.width - 60, y: 50, width: 40, height: 40)
-    flipButton.addTarget(self, action: #selector(flipCamera), for: .touchUpInside)
-    view.addSubview(flipButton)
+// 3. Gallery Button
+     galleryButton = UIButton(type: .system)
+        galleryButton.setImage(UIImage(systemName: "photo.on.rectangle"), for: .normal)
+        galleryButton.tintColor = .white
+        galleryButton.tag = 5004
+        galleryButton.translatesAutoresizingMaskIntoConstraints = false
+        galleryButton.addTarget(self, action: #selector(openGallery), for: .touchUpInside)
+        view.addSubview(galleryButton)
+
+        NSLayoutConstraint.activate([
+            galleryButton.trailingAnchor.constraint(equalTo: captureButton.leadingAnchor, constant: -40),
+            galleryButton.centerYAnchor.constraint(equalTo: captureButton.centerYAnchor),
+            galleryButton.widthAnchor.constraint(equalToConstant: 40),
+            galleryButton.heightAnchor.constraint(equalToConstant: 40)
+        ])
+
+// 4. Flip Camera Button
+        flipButton = UIButton(type: .system)
+            flipButton.setImage(UIImage(systemName: "arrow.triangle.2.circlepath.camera"), for: .normal)
+            flipButton.tintColor = .white
+            flipButton.tag = 5005
+            flipButton.translatesAutoresizingMaskIntoConstraints = false
+            flipButton.addTarget(self, action: #selector(flipCamera), for: .touchUpInside)
+            view.addSubview(flipButton)
+
+            NSLayoutConstraint.activate([
+                flipButton.leadingAnchor.constraint(equalTo: captureButton.trailingAnchor, constant: 40),
+                flipButton.centerYAnchor.constraint(equalTo: captureButton.centerYAnchor),
+                flipButton.widthAnchor.constraint(equalToConstant: 40),
+                flipButton.heightAnchor.constraint(equalToConstant: 40)
+            ])
+
+
+            backButton = UIButton()
+                backButton.setImage(UIImage(systemName: "chevron.left"), for: .normal)
+                backButton.tintColor = .white
+                backButton.tag = 5001
+                backButton.translatesAutoresizingMaskIntoConstraints = false
+                backButton.addTarget(self, action: #selector(dismissSelf), for: .touchUpInside)
+                view.addSubview(backButton)
+
+                NSLayoutConstraint.activate([
+                    backButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+                    backButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+                    backButton.widthAnchor.constraint(equalToConstant: 30),
+                    backButton.heightAnchor.constraint(equalToConstant: 30)
+                ])
+
+     // 6. Flash Button (top right)
+        flashButton = UIButton()
+        flashButton.setImage(UIImage(systemName: "bolt.fill"), for: .normal)
+        flashButton.tintColor = .white
+        flashButton.tag = 5003
+        flashButton.isHidden = (cameraPosition == .front)
+        flashButton.translatesAutoresizingMaskIntoConstraints = false
+        flashButton.addTarget(self, action: #selector(toggleFlash), for: .touchUpInside)
+        view.addSubview(flashButton)
+
+        NSLayoutConstraint.activate([
+            flashButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            flashButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            flashButton.widthAnchor.constraint(equalToConstant: 30),
+            flashButton.heightAnchor.constraint(equalToConstant: 30)
+        ])
   }
 
   @objc func toggleFlash(_ sender: UIButton) {
@@ -182,6 +250,11 @@ class CameraViewController: UIViewController {
                   view.bringSubviewToFront(flipButton)
                   view.bringSubviewToFront(flashButton)
                   view.bringSubviewToFront(galleryButton)
+                  view.bringSubviewToFront(backButton)
+  }
+
+  @objc func dismissSelf() {
+      self.dismiss(animated: true, completion: nil)
   }
 
   @objc func orientationChanged() {

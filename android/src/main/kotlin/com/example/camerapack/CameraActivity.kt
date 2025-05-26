@@ -11,6 +11,7 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
@@ -31,6 +32,7 @@ class CameraActivity : AppCompatActivity() {
     private lateinit var galleryButton:ImageButton
     private lateinit var flipCameraButton:ImageButton
     private var customPath: String? = null
+    private lateinit var camera: Camera
     private var isFlashOn = false
     private lateinit var cameraPreview:PreviewView
 
@@ -82,7 +84,10 @@ class CameraActivity : AppCompatActivity() {
         }
 
         findViewById<ImageView>(R.id.imgFlash).setOnClickListener {
-            isFlashOn = !isFlashOn
+            if (camera.cameraInfo.hasFlashUnit()) {
+                isFlashOn = !isFlashOn
+                camera.cameraControl.enableTorch(isFlashOn)
+            }
             updateFlashIcon()
         }
     }
@@ -136,7 +141,7 @@ class CameraActivity : AppCompatActivity() {
 
             try {
                 cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture)
+                camera =  cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture)
             } catch (exc: Exception) {
                 Log.e("CameraX", "Use case binding failed", exc)
             }
