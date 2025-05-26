@@ -1,3 +1,14 @@
+## [0.0.5] - 2025-05-26
+### Added
+- iOS: Support for image capture without compression.
+- iOS: Integration with `UIImagePickerController` for optional gallery capture fallback.
+- iOS: `onImageCaptured` callback now returns uncompressed image file path.
+
+### Changed
+- iOS: Internal image saving logic refactored to use `imageData.write(to:)` for full-quality preservation.
+
+---
+
 ## [0.0.4] - 2025-04-30
 ### Added
 - Flash toggle support for native camera screens on both Android and iOS.

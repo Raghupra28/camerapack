@@ -9,7 +9,10 @@ class CameraViewController: UIViewController {
 
   var currentInput: AVCaptureDeviceInput?
   var cameraPosition: AVCaptureDevice.Position = .front
-
+  var captureButton: UIButton!
+  var flashButton: UIButton!
+  var flipButton: UIButton!
+  var galleryButton: UIButton!
   var onImageCaptured: ((String) -> Void)?
   var preloadedPath: String?
   var currentDevice: AVCaptureDevice?
@@ -24,35 +27,79 @@ class CameraViewController: UIViewController {
       // You can add code here to display the image if needed
     }
 
-    setupCamera()
+    checkCameraPermission()
     setupUI()
     NotificationCenter.default.addObserver(self, selector: #selector(orientationChanged), name: UIDevice.orientationDidChangeNotification, object: nil)
   }
 
+
+  private func checkCameraPermission() {
+      switch AVCaptureDevice.authorizationStatus(for: .video) {
+      case .authorized:
+          setupCamera()
+      case .notDetermined:
+          AVCaptureDevice.requestAccess(for: .video) { granted in
+              if granted {
+                  DispatchQueue.main.async {
+                      self.setupCamera()
+                  }
+              } else {
+                  self.showPermissionDeniedAlert()
+              }
+          }
+      case .denied, .restricted:
+          showPermissionDeniedAlert()
+      @unknown default:
+          break
+      }
+  }
+
+  private func showPermissionDeniedAlert() {
+      DispatchQueue.main.async {
+          let alert = UIAlertController(title: "Camera Access Denied",
+                                        message: "Please enable camera access in Settings to use this feature.",
+                                        preferredStyle: .alert)
+          alert.addAction(UIAlertAction(title: "Open Settings", style: .default, handler: { _ in
+              if let settingsUrl = URL(string: UIApplication.openSettingsURLString),
+                 UIApplication.shared.canOpenURL(settingsUrl) {
+                  UIApplication.shared.open(settingsUrl)
+              }
+          }))
+          alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+          self.present(alert, animated: true)
+      }
+  }
+
+
   func setupUI() {
-    let captureButton = UIButton(type: .system)
+    captureButton = UIButton(type: .system)
     captureButton.setImage(UIImage(systemName: "circle.fill"), for: .normal)
     captureButton.tintColor = .white
+            captureButton.tag = 5002
     captureButton.frame = CGRect(x: (view.bounds.width - 80)/2, y: view.bounds.height - 120, width: 80, height: 80)
     captureButton.addTarget(self, action: #selector(capturePhoto), for: .touchUpInside)
     view.addSubview(captureButton)
 
-    let flashButton = UIButton(frame: CGRect(x: view.frame.width - 60, y: 40, width: 40, height: 40))
+    flashButton = UIButton(frame: CGRect(x: view.frame.width - 60, y: 40, width: 40, height: 40))
     flashButton.setImage(UIImage(systemName: "bolt.fill"), for: .normal) // Flash ON icon initially
     flashButton.tintColor = .white // Optional: sets icon color
+                flashButton.tag = 5003
+                flashButton.isHidden = (cameraPosition == .front)
     flashButton.addTarget(self, action: #selector(toggleFlash), for: .touchUpInside)
     view.addSubview(flashButton)
 
-    let galleryButton = UIButton(type: .system)
+    galleryButton = UIButton(type: .system)
     galleryButton.setImage(UIImage(systemName: "photo.on.rectangle"), for: .normal)
     galleryButton.tintColor = .white
+                    galleryButton.tag = 5004
     galleryButton.frame = CGRect(x: (view.bounds.width - 80) / 2, y: view.bounds.height - 200, width: 80, height: 80)
     galleryButton.addTarget(self, action: #selector(openGallery), for: .touchUpInside)
     view.addSubview(galleryButton)
 
-    let flipButton = UIButton(type: .system)
+    flipButton = UIButton(type: .system)
     flipButton.setImage(UIImage(systemName: "arrow.triangle.2.circlepath.camera"), for: .normal)
     flipButton.tintColor = .white
+                        flipButton.tag = 5005
     flipButton.frame = CGRect(x: view.bounds.width - 60, y: 50, width: 40, height: 40)
     flipButton.addTarget(self, action: #selector(flipCamera), for: .touchUpInside)
     view.addSubview(flipButton)
@@ -102,6 +149,8 @@ class CameraViewController: UIViewController {
       previewLayer = AVCaptureVideoPreviewLayer(session: captureSession!)
       previewLayer?.frame = view.layer.bounds
       previewLayer?.videoGravity = .resizeAspectFill
+      previewLayer?.connection?.automaticallyAdjustsVideoMirroring = false
+      previewLayer?.connection?.isVideoMirrored = (cameraPosition == .front)
       view.layer.insertSublayer(previewLayer!, at: 0)
     } else {
       previewLayer?.session = captureSession
@@ -125,6 +174,14 @@ class CameraViewController: UIViewController {
   @objc func flipCamera() {
     cameraPosition = (cameraPosition == .back) ? .front : .back
     setupCamera()
+    bringUIToFront()
+  }
+
+  func bringUIToFront() {
+              view.bringSubviewToFront(captureButton)
+                  view.bringSubviewToFront(flipButton)
+                  view.bringSubviewToFront(flashButton)
+                  view.bringSubviewToFront(galleryButton)
   }
 
   @objc func orientationChanged() {
@@ -155,7 +212,7 @@ extension CameraViewController: AVCapturePhotoCaptureDelegate {
     let filePath = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
 
     do {
-      try imageData.write(to: filePath)
+      try imageData.write(to: filePath,options: .atomic)
       onImageCaptured?(filePath.path)
       DispatchQueue.main.async {
         self.dismiss(animated: true, completion: nil)
@@ -168,11 +225,33 @@ extension CameraViewController: AVCapturePhotoCaptureDelegate {
 
 extension CameraViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
   func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
-    if let imageURL = info[.imageURL] as? URL {
-      onImageCaptured?(imageURL.path)
-    }
-    picker.dismiss(animated: true, completion: nil)
+      var imagePath: String?
+
+      if let imageURL = info[.imageURL] as? URL {
+          // Direct file path (no compression)
+          imagePath = imageURL.path
+      } else if let image = info[.originalImage] as? UIImage {
+          // Save as PNG to avoid compression
+          let fileName = UUID().uuidString + ".png"
+          let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+
+          if let imageData = image.pngData() {
+              do {
+                  try imageData.write(to: fileURL, options: .atomic)
+                  imagePath = fileURL.path
+              } catch {
+                  print("Error saving uncompressed image: \(error)")
+              }
+          }
+      }
+
+      if let finalPath = imagePath {
+          onImageCaptured?(finalPath)
+      }
+
+      picker.dismiss(animated: true, completion: nil)
   }
+
 
   func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
     picker.dismiss(animated: true, completion: nil)
