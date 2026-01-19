@@ -11,12 +11,21 @@
 
 ## 🚀 Features
 
-- 📷 Open native camera screen (Android & iOS)
-- 🔄 Flip between front and back cameras
-- 🔁 Handle device orientation changes
-- 📁 Capture and return image file path
-- 🖼 Pick image from gallery
-- 🔌 Communication via platform channels
+- 📷 Launch a native camera screen (Android & iOS)
+
+- 🔄 Switch between front and back cameras
+
+- ⚡ Toggle flash (iOS)
+
+- 🔁 Handles device orientation changes
+
+- 📁 Capture and return image file path to Flutter
+
+- 🖼 Pick images directly from the gallery
+
+- 🧭 Full-screen custom camera UI
+
+- 🔌 Communication handled via Flutter platform channels
 
 ---
 
@@ -35,7 +44,7 @@ Add the plugin to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  camerapack: ^0.0.6
+  camerapack: ^0.0.7
 ```
 
 Then run:
@@ -113,6 +122,18 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+  Future<void> _pickFromGallery() async {
+    try {
+      final path = await _camerapack.pickFromGallery();
+      if (!mounted) return;
+      if (path != null) {
+        setState(() => imagePath = path);
+      }
+    } on PlatformException catch (e) {
+      debugPrint('Error picking image: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -126,9 +147,14 @@ class _MyAppState extends State<MyApp> {
               children: [
                 TextButton(
                   onPressed: _capturePhoto,
-                  child: const Text('Click Photo'),
+                  child: const Text('📸 Capture Photo'),
                 ),
                 const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: _pickFromGallery,
+                  child: const Text('🖼 Pick from Gallery'),
+                ),
+                const SizedBox(height: 30),
                 if (imagePath != null)
                   Image.file(
                     File(imagePath!),

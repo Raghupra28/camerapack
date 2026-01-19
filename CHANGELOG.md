@@ -1,3 +1,30 @@
+## [0.0.7] - 2026-01-19
+### Added
+
+- iOS: Added persistent button visibility when switching between front and back cameras.
+
+- iOS: Improved flash toggle functionality for rear camera.
+
+- iOS: Enhanced UI layout handling for dynamic orientation and device rotation.
+
+- Android & iOS: Optimized image capture flow with smoother transition between camera states.
+
+### Fixed
+
+- Fixed issue where camera control buttons disappeared after flipping the camera.
+
+- Fixed minor layout inconsistencies in CameraViewController.
+
+- General stability and performance improvements across both platforms.
+
+### Changed
+
+- Updated README.md with full usage examples and clearer documentation.
+
+- Code cleanup and UI refactoring for improved maintainability.
+
+---
+
 ## [0.0.6] - 2025-05-26
 ### Changed
 - Updated Readme.

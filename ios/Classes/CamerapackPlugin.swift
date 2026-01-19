@@ -3,65 +3,84 @@ import UIKit
 import Photos
 import AVFoundation
 
-public class CamerapackPlugin: NSObject, FlutterPlugin {
+public class CamerapackPlugin: NSObject, FlutterPlugin, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 
-  var controller: FlutterViewController?
+    private var controller: FlutterViewController?
+    private var pendingResult: FlutterResult?
 
-  public static func register(with registrar: FlutterPluginRegistrar) {
-    let channel = FlutterMethodChannel(name: "imageCapture", binaryMessenger: registrar.messenger())
-    let instance = CamerapackPlugin()
-    instance.controller = UIApplication.shared.delegate?.window??.rootViewController as? FlutterViewController
-    registrar.addMethodCallDelegate(instance, channel: channel)
-  }
-
-  public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-      if call.method == "onCameraClick",
-         let args = call.arguments as? [String: Any],
-         let positionString = args["cameraPosition"] as? String {
-
-        let cameraVC = CameraViewController()
-        cameraVC.modalPresentationStyle = .fullScreen
-        cameraVC.cameraPosition = (positionString == "front") ? .front : .back
-
-        if let path = args["path"] as? String {
-                cameraVC.preloadedPath = path
-              }
-
-        cameraVC.onImageCaptured = { imagePath in
-          result(imagePath) // ✅ Return image path to Flutter
-        }
-
-        controller?.present(cameraVC, animated: true, completion: nil)
-      } else if call.method == "onGalleryClick" {
-              // Handle gallery image picking
-              let imagePicker = UIImagePickerController()
-              imagePicker.sourceType = .photoLibrary
-              imagePicker.allowsEditing = false
-              imagePicker.delegate = self
-
-              controller?.present(imagePicker, animated: true, completion: nil)
-
-              self.pendingResult = result
-            } else {
-        result(FlutterMethodNotImplemented)
-      }
+    // MARK: - Plugin Registration
+    public static func register(with registrar: FlutterPluginRegistrar) {
+        let channel = FlutterMethodChannel(name: "imageCapture", binaryMessenger: registrar.messenger())
+        let instance = CamerapackPlugin()
+        instance.controller = UIApplication.shared.delegate?.window??.rootViewController as? FlutterViewController
+        registrar.addMethodCallDelegate(instance, channel: channel)
     }
 
-    var pendingResult: FlutterResult?
+    // MARK: - Method Call Handling
+    public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        switch call.method {
+        case "onCameraClick":
+            guard let args = call.arguments as? [String: Any],
+                  let positionString = args["cameraPosition"] as? String else {
+                result(FlutterError(code: "INVALID_ARGUMENTS", message: "Missing cameraPosition", details: nil))
+                return
+            }
 
-      func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            let cameraVC = CameraViewController()
+            cameraVC.modalPresentationStyle = .fullScreen
+            cameraVC.cameraPosition = (positionString == "front") ? .front : .back
+
+            if let path = args["path"] as? String {
+                cameraVC.preloadedPath = path
+            }
+
+            cameraVC.onImageCaptured = { imagePath in
+                DispatchQueue.main.async {
+                    result(imagePath)
+                }
+            }
+
+            controller?.present(cameraVC, animated: true, completion: nil)
+
+        case "onGalleryClick":
+            DispatchQueue.main.async {
+                let imagePicker = UIImagePickerController()
+                imagePicker.sourceType = .photoLibrary
+                imagePicker.allowsEditing = false
+                imagePicker.delegate = self
+
+                self.pendingResult = result
+                self.controller?.present(imagePicker, animated: true, completion: nil)
+            }
+
+        default:
+            result(FlutterMethodNotImplemented)
+        }
+    }
+
+    // MARK: - UIImagePickerControllerDelegate
+    public func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+        defer { 
+            picker.dismiss(animated: true, completion: nil)
+            pendingResult = nil
+        }
+
         if let selectedImageURL = info[.imageURL] as? URL {
-          let imagePath = selectedImageURL.path
-          pendingResult?(imagePath) // Return the image path to Flutter
+            DispatchQueue.main.async {
+                self.pendingResult?(selectedImageURL.path)
+            }
         } else {
-          pendingResult?(FlutterError(code: "PICKING_FAILED", message: "Failed to pick image", details: nil))
+            DispatchQueue.main.async {
+                self.pendingResult?(FlutterError(code: "PICKING_FAILED", message: "Failed to pick image", details: nil))
+            }
         }
+    }
 
+    public func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        DispatchQueue.main.async {
+            self.pendingResult?(FlutterError(code: "PICKING_CANCELED", message: "Image picking was canceled", details: nil))
+        }
         picker.dismiss(animated: true, completion: nil)
-      }
-
-      func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-          pendingResult?(FlutterError(code: "PICKING_CANCELED", message: "Image picking was canceled", details: nil))
-          picker.dismiss(animated: true, completion: nil)
-        }
+        pendingResult = nil
+    }
 }
